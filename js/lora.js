@@ -1,5 +1,7 @@
+//********************************************
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+//********************************************
 var firebaseConfig = {
     apiKey: "AIzaSyBToQZ5JQL2v_GViIxEzs04B1MsZfAvLWQ",
     authDomain: "lora-d5195.firebaseapp.com",
@@ -14,10 +16,18 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 //********************************************
+// declare global value
+//********************************************
+var dataTableArr = [];
+var temperatureArr = [0, 0, 0, 0, 0];
+var maxTemperature = 0;
+var minTemperature = 0;
+var timeArr = ['00:00:00', '00:00:00', '00:00:00','00:00:00', '00:00:00'];
+var i = 0;
+
+//********************************************
 //handle logic of LORA web table
 //********************************************
-
-var dataTableArr = [];
 
 var addTable = (colNum) =>{
     let trElement = document.createElement('tr');
@@ -29,7 +39,20 @@ var addTable = (colNum) =>{
     tdBody.appendChild(trElement)
 }
 
-var i =0;
+var convertTimeShort = (raw) => {
+    dateRaw = new Date(raw);
+    return dateRaw.getUTCHours() + ':' + dateRaw.getUTCMinutes() + ':' + dateRaw.getUTCSeconds();
+}
+var convertTimeStandard = (raw) => {
+  dateRaw = new Date(raw);
+  return dateRaw.toString().replace("GMT+0700 (Indochina Time)", "");
+}
+
+// var checkServer = (time) => {
+//   let serverTime = new date(time);
+//   let now = new date();
+//   alert(now);
+// }
 
 var test = document.getElementById('test');
 var dbref = firebase.database().ref().child('test');
@@ -37,11 +60,22 @@ var convertData = (deviceData) => {
     let id = i++;
     let temperature = deviceData.payload_fields.temperature;
     let humidity = deviceData.payload_fields.humidity;
-    let gasLevel = 188;
-    let dustDensity = 1.3;
+    let airQuality = deviceData.payload_fields.airQuality;
+    let dustDensity = deviceData.payload_fields.dustDensity;
     let samplingTime = deviceData.metadata.time;
+    //checkServer(samplingTime);
 
-    dataTableArr.unshift({id, temperature, humidity, gasLevel, dustDensity, samplingTime});
+    temperatureArr.unshift(temperature);
+    temperatureArr.pop();
+    timeArr.unshift(convertTimeShort(samplingTime));
+    timeArr.pop();
+
+    if (i > 1)
+      chartTest();
+
+    //format date for table
+    samplingTime = convertTimeStandard(new Date (samplingTime));
+    dataTableArr.unshift({id, temperature, humidity, airQuality, dustDensity, samplingTime});
     if(dataTableArr.length > 5) dataTableArr.pop();
 
     let tdBody = document.querySelector('tbody');
@@ -51,13 +85,10 @@ var convertData = (deviceData) => {
         tdBody.rows[i].cells[0].innerHTML = (dataTableArr[i].id != null)? dataTableArr[i].id : "";
         tdBody.rows[i].cells[1].innerHTML = (dataTableArr[i].temperature != null)? dataTableArr[i].temperature : "";
         tdBody.rows[i].cells[2].innerHTML = (dataTableArr[i].humidity != null)? dataTableArr[i].humidity : "";
-        tdBody.rows[i].cells[3].innerHTML = (dataTableArr[i].gasLevel != null)? dataTableArr[i].gasLevel : "";
+        tdBody.rows[i].cells[3].innerHTML = (dataTableArr[i].airQuality != null)? dataTableArr[i].airQuality : "";
         tdBody.rows[i].cells[4].innerHTML = (dataTableArr[i].dustDensity != null)? dataTableArr[i].dustDensity : "";
-        tdBody.rows[i].cells[5].innerHTML = (dataTableArr[i].samplingTime != null)? new Date (dataTableArr[i].samplingTime) : "";
+        tdBody.rows[i].cells[5].innerHTML = (dataTableArr[i].samplingTime != null)? dataTableArr[i].samplingTime : "";
     }
-    // if(dataTableArr.length == 5){
-    //     autoChart();
-    // }
 }
 
 dbref.on('value', deviceObj => convertData(deviceObj.val()));
@@ -66,40 +97,241 @@ dbref.on('value', deviceObj => convertData(deviceObj.val()));
 //********************************************
 //handle logic of LORA web chart
 //********************************************
+
+//var temperatureLimit = ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'];
+
 // Set new default font family and font color to mimic Bootstrap's default styling
-// Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-// Chart.defaults.global.defaultFontColor = '#858796';
+Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#858796';
 
+// function number_format(number, decimals, dec_point, thousands_sep) {
+//   // *     example: number_format(1234.56, 2, ',', ' ');
+//   // *     return: '1 234,56'
+//   number = (number + '').replace(',', '').replace(' ', '');
+//   var n = !isFinite(+number) ? 0 : +number,
+//     prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+//     sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+//     dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+//     s = '',
+//     toFixedFix = function(n, prec) {
+//       var k = Math.pow(10, prec);
+//       return '' + Math.round(n * k) / k;
+//     };
+//   // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+//   s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+//   if (s[0].length > 3) {
+//     s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+//   }
+//   if ((s[1] || '').length < prec) {
+//     s[1] = s[1] || '';
+//     s[1] += new Array(prec - s[1].length + 1).join('0');
+//   }
+//   return s.join(dec);
+// }
 
+var ctx = document.getElementById("myAreaChart");
 
-// // Area Chart Example
+var createChart = () => {
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: timeArr,
+      datasets: [{
+        label: "Earnings",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: temperatureArr,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+            callback: function (value, index, values) {
+              return value + '°C';
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function (tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel + '°C';
+          }
+        }
+      }
+    }
+  });
+}
+createChart ();
 
-// const labels = [
-//     'January',
-//     'February',
-//     'March',
-//     'April',
-//     'May',
-//     'June',
-// ];
-// const data = {
-//     labels: labels,
-//     datasets: [{
-//         label: 'Temprature',
-//         backgroundColor: 'rgb(255, 99, 132)',
-//         borderColor: 'rgb(255, 99, 132)',
-//         data: [0, 10, 5, 20, 10, 5, 15],
-//     }]
-// };
+var chartTest = () => {
+  Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: timeArr,
+      datasets: [{
+        label: "Earnings",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: temperatureArr,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+            // Include a dollar sign in the ticks
+            callback: function (value, index, values) {
+              return value + '°C';
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function (tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel + '°C';
+          }
+        }
+      }
+    }
+  });
+};
 
+//********************************************
+//handle logic of LORA web button
+//********************************************
 
-// const config = {
-//     type: 'line',
-//     data,
-//     options: {}
-// };
+$("#fanBtn").bind( "click", () => {
+  if($('#fanText').text() == 'On'){
+    $('#fanText').text('Off');
+    $("#fanBtn").removeClass('btn-primary').addClass('btn-danger');
+  }else {
+    $('#fanText').text('On');
+    $("#fanBtn").removeClass('btn-danger').addClass('btn-primary');
+  }
+});
 
-// var myChart = new Chart(
-//     document.getElementById('myAreaChart'),
-//     config
-// );
+$( "#lightBtn" ).bind( "click", function() {
+  if($('#lightText').text() == 'On'){
+    $('#lightText').text('Off');
+    $("#lightBtn").removeClass('btn-primary').addClass('btn-danger');
+  }else {
+    $('#lightText').text('On');
+    $("#lightBtn").removeClass('btn-danger').addClass('btn-primary');
+  }
+});
+
