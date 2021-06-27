@@ -3,14 +3,14 @@
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 //********************************************
 var firebaseConfig = {
-    apiKey: "AIzaSyBToQZ5JQL2v_GViIxEzs04B1MsZfAvLWQ",
-    authDomain: "lora-d5195.firebaseapp.com",
-    databaseURL: "https://lora-d5195-default-rtdb.firebaseio.com",
-    projectId: "lora-d5195",
-    storageBucket: "lora-d5195.appspot.com",
-    messagingSenderId: "62705741169",
-    appId: "1:62705741169:web:e9a4b57628eb165bd55ad0",
-    measurementId: "G-LBMM8PVT68"
+  apiKey: "AIzaSyBOy8UXXXy2IUmXgeeaLgI0bsfgucQObu8",
+  authDomain: "lora-105ec.firebaseapp.com",
+  databaseURL: "https://lora-105ec-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lora-105ec",
+  storageBucket: "lora-105ec.appspot.com",
+  messagingSenderId: "47038179866",
+  appId: "1:47038179866:web:e33f0408d9fde0172f3fa3",
+  measurementId: "G-BT8KW4H7ZG"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -54,8 +54,8 @@ var convertTimeStandard = (raw) => {
 //   alert(now);
 // }
 
-var test = document.getElementById('test');
-var dbref = firebase.database().ref().child('test');
+var test = document.getElementById('lora');
+var dbref = firebase.database().ref().child('lora');
 var convertData = (deviceData) => {
     let id = i++;
     let temperature = deviceData.payload_fields.temperature;
@@ -71,7 +71,7 @@ var convertData = (deviceData) => {
     timeArr.pop();
 
     if (i > 1)
-      chartTest();
+      createChart();
 
     //format date for table
     samplingTime = convertTimeStandard(new Date (samplingTime));
