@@ -19,10 +19,11 @@ firebase.initializeApp(firebaseConfig);
 // declare global value
 //********************************************
 var dataTableArr = [];
-var temperatureArr = [0, 0, 0, 0, 0];
-var maxTemperature = 0;
-var minTemperature = 0;
-var timeArr = ['00:00:00', '00:00:00', '00:00:00','00:00:00', '00:00:00'];
+var temperatureArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var humidityArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var airQualityArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var dustDensityArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var timeArr = ['00:00:00', '00:00:00', '00:00:00','00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00','00:00:00', '00:00:00'];
 var i = 0;
 
 //********************************************
@@ -41,7 +42,7 @@ var addTable = (colNum) =>{
 
 var convertTimeShort = (raw) => {
     dateRaw = new Date(raw);
-    return dateRaw.getUTCHours() + ':' + dateRaw.getUTCMinutes() + ':' + dateRaw.getUTCSeconds();
+    return dateRaw.getHours() + ':' + dateRaw.getMinutes() + ':' + dateRaw.getSeconds();
 }
 var convertTimeStandard = (raw) => {
   dateRaw = new Date(raw);
@@ -67,6 +68,12 @@ var convertData = (deviceData) => {
 
     temperatureArr.unshift(temperature);
     temperatureArr.pop();
+    humidityArr.unshift(humidity);
+    humidityArr.pop();
+    airQualityArr.unshift(airQuality);
+    airQualityArr.pop();
+    dustDensityArr.unshift(dustDensity);
+    dustDensityArr.pop();
     timeArr.unshift(convertTimeShort(samplingTime));
     timeArr.pop();
 
@@ -129,15 +136,19 @@ Chart.defaults.global.defaultFontColor = '#858796';
 //   return s.join(dec);
 // }
 
-var ctx = document.getElementById("myAreaChart");
+var ctxT = document.getElementById("myAreaChartTemperatue");
+var ctxH = document.getElementById("myAreaChartHumidity");
+var ctxA = document.getElementById("myAreaChartAirQuality");
+var ctxD = document.getElementById("myAreaChartDustDensity");
 
 var createChart = () => {
-  new Chart(ctx, {
+  //Temperature
+  new Chart(ctxT, {
     type: 'line',
     data: {
       labels: timeArr,
       datasets: [{
-        label: "Earnings",
+        label: "Nhiệt độ:",
         lineTension: 0.3,
         backgroundColor: "rgba(78, 115, 223, 0.05)",
         borderColor: "rgba(78, 115, 223, 1)",
@@ -172,15 +183,15 @@ var createChart = () => {
             drawBorder: false
           },
           ticks: {
-            maxTicksLimit: 7
+            maxTicksLimit: 10
           }
         }],
         yAxes: [{
           ticks: {
-            maxTicksLimit: 5,
+            maxTicksLimit: 7,
             padding: 10,
             callback: function (value, index, values) {
-              return value + '°C';
+              return value + ' °C';
             }
           },
           gridLines: {
@@ -212,7 +223,268 @@ var createChart = () => {
         callbacks: {
           label: function (tooltipItem, chart) {
             var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-            return datasetLabel + ': ' + tooltipItem.yLabel + '°C';
+            return datasetLabel + ': ' + tooltipItem.yLabel + ' °C';
+          }
+        }
+      }
+    }
+  });
+  //Humidity
+  new Chart(ctxH, {
+    type: 'line',
+    data: {
+      labels: timeArr,
+      datasets: [{
+        label: "Độ ẩm:",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: humidityArr,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 10
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 7,
+            padding: 10,
+            callback: function (value, index, values) {
+              return value + ' %';
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function (tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel + ' %';
+          }
+        }
+      }
+    }
+  });
+  //AirQuality
+  new Chart(ctxA, {
+    type: 'line',
+    data: {
+      labels: timeArr,
+      datasets: [{
+        label: "Mức khí gas:",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: airQualityArr,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 10
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 7,
+            padding: 10,
+            callback: function (value, index, values) {
+              return value + ' ppm';
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function (tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel + ' ppm';
+          }
+        }
+      }
+    }
+  });
+  //DustDensity
+  new Chart(ctxD, {
+    type: 'line',
+    data: {
+      labels: timeArr,
+      datasets: [{
+        label: "Mật độ bụi:",
+        lineTension: 0.3,
+        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        borderColor: "rgba(78, 115, 223, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointBorderColor: "rgba(78, 115, 223, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+        pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: dustDensityArr,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 10
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 7,
+            padding: 10,
+            callback: function (value, index, values) {
+              return value + ' mg/m3';
+            }
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 15,
+        yPadding: 15,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+        callbacks: {
+          label: function (tooltipItem, chart) {
+            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+            return datasetLabel + ': ' + tooltipItem.yLabel + ' mg/m3';
           }
         }
       }
