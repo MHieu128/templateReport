@@ -58,7 +58,7 @@ var convertTimeStandard = (raw) => {
 var test = document.getElementById('lora');
 var dbref = firebase.database().ref().child('lora');
 var convertData = (deviceData) => {
-    let id = i++;
+    let id = deviceData.counter;
     let temperature = deviceData.payload_fields.temperature;
     let humidity = deviceData.payload_fields.humidity;
     let airQuality = deviceData.payload_fields.airQuality;
